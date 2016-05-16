@@ -33,38 +33,46 @@ def coarsen_grid(phi, mask, epsilon):
     phi_2h = np.zeros((np.arange(0, zfar_2h, 2).size,
                       np.arange(-xfar_2h, xfar_2h, 2).size + cx_h))
     mask_2h = np.zeros((np.arange(0, zfar_2h, 2).size,
-                       np.arange(-xfar_2h, xfar_2h, 2).size + cx+h))
+                       np.arange(-xfar_2h, xfar_2h, 2).size + cx_h))
 
     # Copy across the phi and mask data from the finer grid to the coarser grid
     # Start at the first line:
-    phi_2h[0, :] = phi[0, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
-    mask_2h[0, :] = mask[0, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+
+    # phi_2h[0, :] = phi[0, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+    # mask_2h[0, :] = mask[0, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+
+    phi_2h[0, :] = phi[0, cx_h - xfar_2h:cx_h + xfar_2h:2]
+    mask_2h[0, :] = mask[0, cx_h - xfar_2h:cx_h + xfar_2h:2]
+
     j = 0
     # Now do rest of lines in turn
     for i in range(1, zfar_2h, 2):
-        phi_2h[j, :] = phi[i, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
-        mask_2h[j, :] = mask[i, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+        # phi_2h[j, :] = phi[i, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+        # mask_2h[j, :] = mask[i, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+
+        phi_2h[j, :] = phi[i, cx_h - xfar_2h:cx_h + xfar_2h:2]
+        mask_2h[j, :] = mask[i,  cx_h - xfar_2h:cx_h + xfar_2h:2]
         # Check whether we have missed any important information
         # (i.e. an electrode), and add any required info to new grid
         # Dave:
         # I think this checks if there was an electrode in the skipped line,
         # then adds it to the current one if that's the case.
-        if np.count_nonzero(mask[i-1, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]):
-            phi_2h[j, :] = phi[i-1, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
-            mask_2h[j, :] = mask[i-1, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+        if np.count_nonzero(mask[i-1, cx_h - xfar_2h:cx_h + xfar_2h:2]):
+            phi_2h[j, :] = phi[i-1, cx_h - xfar_2h:cx_h + xfar_2h:2]
+            mask_2h[j, :] = mask[i-1, cx_h - xfar_2h:cx_h + xfar_2h:2]
         j = j + 1
 
     # Ensure boundary conditions retained at the top and bottom
-    phi_2h[-1, :] = phi[-1, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
-    mask_2h[-1, :] = mask[-1, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
+    phi_2h[-1, :] = phi[-1, cx_h - xfar_2h:cx_h + xfar_2h:2]
+    mask_2h[-1, :] = mask[-1, cx_h - xfar_2h:cx_h + xfar_2h:2]
 
     # Pre-allocate the permittivity array
     epsil = np.ones(zsize_h, xsize_h)
 
     # Interpolate the input permittivities onto the potential grid at the finer
     # grid level
-    epsil[1:-2, 1:-2] = (epsilon[1:-1, 0:-2] + epsilon[0:-2, 0:-2] +
-                         epsilon[1:-1, 1:-1] + epsilon[0:-2, 1:-1])/4
+    epsil[1:-1, 1:-1] = (epsilon[1:, 0:-1] + epsilon[0:-1, 0:-1] +
+                         epsilon[1:, 1:] + epsilon[0:-1, 1:])/4
 
     epsil[0, :] = epsil[1, :]
     epsil[-1, :] = epsil[-2, :]
@@ -75,7 +83,9 @@ def coarsen_grid(phi, mask, epsilon):
     """ MATLAB:
     epsilin_2h = epsil(2:2:(zfar_2h-1),cx_h+((-xfar_2h+1):2:(xfar_2h-1)));
     """
-    epsilon_2h = epsil[np.arange(1, zfar_2h-1, 2),
-                       cx_h + np.arange(-xfar_2h+1, xfar_2h-1, 2)]
+    # epsilon_2h = epsil[np.arange(1, zfar_2h-1, 2),
+    #                    cx_h + np.arange(-xfar_2h+1, xfar_2h-1, 2)]
+    epsilon_2h = epsil[1:zfar_2h - 1:2,
+                       cx_h - xfar_2h + 1:cx_h + xfar_2h - 1:2]
 
     return phi_2h, mask_2h, epsilon_2h
