@@ -30,10 +30,13 @@ def coarsen_grid(phi, mask, epsilon):
     This seems horribly inefficient as it creates an temp array in order to
     calculate the size of the new array.
     """
-    phi_2h = np.zeros((np.arange(0, zfar_2h, 2).size,
-                      np.arange(-xfar_2h, xfar_2h, 2).size + cx_h))
-    mask_2h = np.zeros((np.arange(0, zfar_2h, 2).size,
-                       np.arange(-xfar_2h, xfar_2h, 2).size + cx_h))
+    # phi_2h = np.zeros((np.arange(0, zfar_2h, 2).size,
+    #                   np.arange(-xfar_2h, xfar_2h, 2).size + cx_h))
+    # mask_2h = np.zeros((np.arange(0, zfar_2h, 2).size,
+    #                    np.arange(-xfar_2h, xfar_2h, 2).size + cx_h))
+
+    phi_2h = np.zeros((zfar_2h/2, xfar_2h))
+    mask_2h = np.zeros((zfar_2h/2, xfar_2h))
 
     # Copy across the phi and mask data from the finer grid to the coarser grid
     # Start at the first line:
@@ -46,7 +49,7 @@ def coarsen_grid(phi, mask, epsilon):
 
     j = 0
     # Now do rest of lines in turn
-    for i in range(1, zfar_2h, 2):
+    for i in range(1, int(zfar_2h), 2):
         # phi_2h[j, :] = phi[i, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
         # mask_2h[j, :] = mask[i, cx_h + np.arange(-xfar_2h, xfar_2h, 2)]
 
@@ -67,7 +70,7 @@ def coarsen_grid(phi, mask, epsilon):
     mask_2h[-1, :] = mask[-1, cx_h - xfar_2h:cx_h + xfar_2h:2]
 
     # Pre-allocate the permittivity array
-    epsil = np.ones(zsize_h, xsize_h)
+    epsil = np.ones((zsize_h, xsize_h))
 
     # Interpolate the input permittivities onto the potential grid at the finer
     # grid level
@@ -77,7 +80,7 @@ def coarsen_grid(phi, mask, epsilon):
     epsil[0, :] = epsil[1, :]
     epsil[-1, :] = epsil[-2, :]
     epsil[:, 0] = epsil[:, 1]
-    epsil[:, end] = epsil[:, -2]
+    epsil[:, -1] = epsil[:, -2]
 
     # Copy onto coarser grid
     """ MATLAB:

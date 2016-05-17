@@ -16,6 +16,8 @@ xfar_2h = 2*floor((xsize_h-1)/4);
 phi_2h = zeros(size(1:2:zfar_2h,2),size(cx_h+((-xfar_2h):2:xfar_2h),2));
 mask_2h = zeros(size(1:2:zfar_2h,2),size(cx_h+((-xfar_2h):2:xfar_2h),2));
 
+disp(size(phi_2h))
+
 % Copy across the phi and mask data from the finer grid to the coarser grid
 % Start at the first line:
 phi_2h(1,:) = phi(1,cx_h+((-xfar_2h):2:xfar_2h));
